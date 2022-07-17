@@ -1,12 +1,24 @@
 Class {
 	#name : #RepeatCard,
-	#superclass : #Object,
+	#superclass : #Card,
 	#category : #'IngSoft2-Model'
 }
 
-{ #category : #actions }
-RepeatCard >> applyEffectTo: aShip on: aCardManager by: sourceShip [
+{ #category : #'instance creation' }
+RepeatCard class >> thrownBy: sourceShip [ 
+	
+	^self new initializeThrownBy: sourceShip
+]
 
-	aCardManager applyLastEffectOn: aShip.
-	aCardManager addToTheCardsStack: self
+{ #category : #actions }
+RepeatCard >> effectOn: aCardApplicator [
+
+	^ [ :aCollectionOfShip | 
+	  aCardApplicator applyLastEffectOn: aCollectionOfShip first ]
+]
+
+{ #category : #initialization }
+RepeatCard >> initializeThrownBy: aSourceShip [  
+	
+	sourceShip := aSourceShip
 ]

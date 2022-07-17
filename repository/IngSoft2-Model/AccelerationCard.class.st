@@ -1,28 +1,29 @@
 Class {
 	#name : #AccelerationCard,
-	#superclass : #Object,
+	#superclass : #Card,
 	#category : #'IngSoft2-Model'
 }
 
-{ #category : #action }
-AccelerationCard >> applyEffectToAllShipsOn: aCardManager by: sourceShip [
-
-	self assertIsYourTurn: sourceShip in: aCardManager.
+{ #category : #'instance creation' }
+AccelerationCard class >> thrownBy: sourceShip [ 
 	
-	aCardManager addCardToTable:
-		(ActiveCard with: self appliedTo: aCardManager ships).
-	
-	aCardManager addToTheCardsStack: self
-]
-
-{ #category : #asserting }
-AccelerationCard >> assertIsYourTurn: aShip in: aCardManager [
-
-	(aCardManager isTurnOf: aShip) ifFalse: [ 
-		Error signal: 'Permanent cards can only be used when its your turn' ]
+	^ self new initializeThrownBy: sourceShip
 ]
 
 { #category : #accesing }
 AccelerationCard >> changeOfRoll [
 	^1
+]
+
+{ #category : #action }
+AccelerationCard >> effectOn: aCardApplicator [
+
+	^ [ :aCollectionOfShips | 
+	  aCardApplicator applyPermanentCardEffectOf: self to: aCollectionOfShips thrownBy: sourceShip ]
+]
+
+{ #category : #initialization }
+AccelerationCard >> initializeThrownBy: aSourceShip [
+	
+	sourceShip := aSourceShip
 ]

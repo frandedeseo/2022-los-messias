@@ -1,28 +1,32 @@
 Class {
 	#name : #SpeedCard,
-	#superclass : #Object,
+	#superclass : #Card,
 	#category : #'IngSoft2-Model'
 }
 
-{ #category : #action }
-SpeedCard >> applyEffectTo: ship on: aCardManager by: sourceShip [
-
-	self assertIsYourTurn: sourceShip in: aCardManager.
+{ #category : #'instance creation' }
+SpeedCard class >> thrownBy: aSourceShip [ 
 	
-	aCardManager addCardToTable:
-		(ActiveCard with: self appliedTo: { ship }).
-	
-	aCardManager addToTheCardsStack: self
-]
-
-{ #category : #action }
-SpeedCard >> assertIsYourTurn: aShip in: aCardManager [
-
-	(aCardManager isTurnOf: aShip) ifFalse: [ 
-		Error signal: 'Permanent cards can only be used when its your turn' ]
+	^self new initializeThrownBy: aSourceShip
 ]
 
 { #category : #action }
 SpeedCard >> changeOfRoll [
 	^1
+]
+
+{ #category : #action }
+SpeedCard >> effectOn: aCardApplicator [
+
+	^ [ :aCollectionOfShips | 
+	  aCardApplicator
+		  applyPermanentCardEffectOf: self
+		  to: aCollectionOfShips
+		  thrownBy: sourceShip ]
+]
+
+{ #category : #initialization }
+SpeedCard >> initializeThrownBy: aSourceShip [
+	
+	sourceShip := aSourceShip
 ]

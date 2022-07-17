@@ -1,29 +1,32 @@
 Class {
 	#name : #OverloadCard,
-	#superclass : #Object,
+	#superclass : #Card,
 	#category : #'IngSoft2-Model'
 }
 
-{ #category : #action }
-OverloadCard >> applyEffectTo: aShip on: aCardManager by: sourceShip [
-
+{ #category : #'instance creation' }
+OverloadCard class >> thrownBy: sourceShip [ 
 	
-	self assertIsYourTurn: sourceShip in: aCardManager.
-	
-	aCardManager addCardToTable:
-		(ActiveCard with: self appliedTo: { aShip }).
-		
-	aCardManager addToTheCardsStack: self.
-]
-
-{ #category : #action }
-OverloadCard >> assertIsYourTurn: aShip in: aCardManager [
-
-	(aCardManager isTurnOf: aShip) ifFalse: [ 
-		Error signal: 'Permanent cards can only be used when its your turn' ]
+	^ self new initializeThrownBy: sourceShip
 ]
 
 { #category : #action }
 OverloadCard >> changeOfRoll [
 	^-2
+]
+
+{ #category : #action }
+OverloadCard >> effectOn: aCardApplicator [
+
+	^ [ :aCollectionOfShips | 
+	  aCardApplicator
+		  applyPermanentCardEffectOf: self
+		  to: aCollectionOfShips
+		  thrownBy: sourceShip ]
+]
+
+{ #category : #initialization }
+OverloadCard >> initializeThrownBy: aSourceShip [ 
+	
+	sourceShip := aSourceShip 
 ]

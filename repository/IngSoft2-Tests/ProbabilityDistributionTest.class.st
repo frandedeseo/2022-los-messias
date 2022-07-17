@@ -9,8 +9,8 @@ ProbabilityDistributionTest >> testProbabilityDistributionReceivesACollectionWit
 
 	| aProbabilityDistribution |
 	aProbabilityDistribution := ProbabilityDistribution with: { 
-			                            (PointProbability withX: 'a' andY: 100).
-			                            (PointProbability withX: 'b' andY: 0) }.
+			                            (ProbabilityPoint withX: 'a' andY: 100).
+			                            (ProbabilityPoint withX: 'b' andY: 0) }.
 	self assert: aProbabilityDistribution generateRandom equals: 'a'
 ]
 
@@ -19,25 +19,25 @@ ProbabilityDistributionTest >> testProbabilityDistributionReceivesACollectionWit
 
 	| aProbabilityDistribution aCollection |
 	aProbabilityDistribution := ProbabilityDistribution with: { 
-			                            (PointProbability withX: 'a' andY: 75).
-			                            (PointProbability  withX: 'b' andY: 20).
-			                            (PointProbability  withX: 'c' andY: 5) }.
+			                            (ProbabilityPoint withX: 'a' andY: 75).
+			                            (ProbabilityPoint withX: 'b' andY: 20).
+			                            (ProbabilityPoint withX: 'c' andY: 5) }.
 
 	aCollection := OrderedCollection new.
 	1 to: 100000 do: [ :i | 
 	aCollection add: aProbabilityDistribution generateRandom ].
 	self assert:
-		((aCollection select: [ :e | e = 'a' ]) size
+		((aCollection count:  [ :e | e = 'a' ])
 			 between: 65000
 			 and: 85000).
 
 	self assert:
-		((aCollection select: [ :i | i = 'b' ]) size
+		((aCollection count: [ :i | i = 'b' ])
 			 between: 10000
 			 and: 30000).
 
 	self assert:
-		((aCollection select: [ :i | i = 'c' ]) size between: 0 and: 10000)
+		((aCollection count: [ :i | i = 'c' ]) between: 0 and: 10000)
 ]
 
 { #category : #tests }
@@ -45,8 +45,8 @@ ProbabilityDistributionTest >> testProbabilityDistributionThrowsErrorWhenIsIitia
 
 	self
 		should: [ ProbabilityDistribution with: { 
-					(PointProbability withX: 'a' andY: 10).
-					(PointProbability withX: 'b' andY: 89) }]
+					(ProbabilityPoint withX: 'a' andY: 10).
+					(ProbabilityPoint withX: 'b' andY: 89) }]
 		raise: Error
 		withMessage: 'The sum of the probabilities must be 100%'
 ]

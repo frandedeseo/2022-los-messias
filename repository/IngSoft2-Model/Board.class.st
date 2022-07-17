@@ -31,7 +31,7 @@ Class {
 		'positionOfShips',
 		'boardDefinition',
 		'lastEffect',
-		'cardManager'
+		'cardApplicator'
 	],
 	#classInstVars : [
 		'ships'
@@ -39,32 +39,31 @@ Class {
 	#category : #'IngSoft2-Model'
 }
 
-{ #category : #initialization }
-Board class >> of: aBoardStructure withAll: aCollectionOfShips andCardManager: aCardManager [
+{ #category : #'instance creation' }
+Board class >> of: aBoardStructure withAll: aCollectionOfShips and: aCardApplicator [
 
 	^ self new
 		  initializeWith: aBoardStructure
 		  withAGroupOf: aCollectionOfShips
-		  withCardManager: aCardManager
+		  withCardManager: aCardApplicator
 ]
 
 { #category : #private }
 Board >> addIntoGame: aCollectionOfShips [
 
-	positionOfShips := OrderedCollection new.
-	aCollectionOfShips do: [ :aShip | 
-		positionOfShips add: (ShipPosition for: aShip at: 0 and: 0) ]
+	positionOfShips := aCollectionOfShips collect: [ :aShip | 
+		                          (ShipPosition for: aShip at: 0 and: 0) ].
 ]
 
 { #category : #private }
-Board >> applyEffectOnLockerOrCorrectThePositionOfWinnerTo: aShip [
+Board >> applyEffectOnLockerOrCorrectThePositionIfCrossFinishLineTo: aShip [
 
 	| thisLocker |
 	thisLocker := boardDefinition lockerAt:
 		              (self numberOfLockerOf: aShip) + 1.
 	lastEffect := thisLocker.
 	(self hasCrossFinishLine: aShip) ifFalse: [ 
-		thisLocker applyFor: aShip on: self] ifTrue: [ self correctPositionOfWinner: aShip ]
+		thisLocker applyFor: aShip on: self] ifTrue: [ self correctPositionIfCrossFinishLineTo: aShip ]
 	
 ]
 
@@ -78,11 +77,11 @@ Board >> applyLastEffectOn: aShip [
 Board >> changePositionOf: aShip by: aNumberOfLockers [
 
 	self move: aShip by: aNumberOfLockers.
-	self applyEffectOnLockerOrCorrectThePositionOfWinnerTo: aShip
+	self applyEffectOnLockerOrCorrectThePositionIfCrossFinishLineTo: aShip
 ]
 
 { #category : #private }
-Board >> correctPositionOfWinner: aShip [
+Board >> correctPositionIfCrossFinishLineTo: aShip [
 
 
 		positionOfShips
@@ -93,7 +92,7 @@ Board >> correctPositionOfWinner: aShip [
 { #category : #private }
 Board >> giveCardTo: aShip [
 
-	cardManager addTheNextCardToHandCardOf: aShip
+	cardApplicator addTheNextCardToHandCardOf: aShip
 ]
 
 { #category : #moving }
@@ -105,12 +104,12 @@ Board >> hasCrossFinishLine: aShip [
 ]
 
 { #category : #initalization }
-Board >> initializeWith: aBoardDefinition withAGroupOf: aCollectionOfShips withCardManager: aCardManager [
+Board >> initializeWith: aBoardDefinition withAGroupOf: aCollectionOfShips withCardManager: aCardApplicator [
 
 	boardDefinition := aBoardDefinition.
 	self addIntoGame: aCollectionOfShips.
 	lastEffect := LockerNoEffect new.
-	cardManager := aCardManager
+	cardApplicator := aCardApplicator
 ]
 
 { #category : #private }
@@ -129,11 +128,13 @@ Board >> move: aShip by: aNumberOfLockers [
 { #category : #private }
 Board >> move: aShip byParsecs: numberOfParsecs [
 
-	self move: aShip by: (numberOfParsecs * (boardDefinition parsecsPerLocker )) asInteger
+	self
+		move: aShip
+		by: (numberOfParsecs * boardDefinition unitPerLocker) floor
 ]
 
 { #category : #private }
-Board >> moveAllExcept: aShip by: aNumberOfLockers [
+Board >> moveAllBackwardsExcept: aShip by: aNumberOfLockers [
 
 	| ships |
 	ships := (positionOfShips collect: [ :positionOfShip | 
@@ -182,11 +183,8 @@ Board >> numberOfLockerOf: aShip [
 { #category : #'accessing - attributes' }
 Board >> positionOf: aShip [
 
-	| positionOfShip |
-	positionOfShip := positionOfShips select: [ :aPositionOfShip | 
-		                  (aPositionOfShip ship) == aShip ].
-
-	^ positionOfShip removeFirst
+	^ positionOfShips detect: [ :aPositionOfShip | 
+		  aPositionOfShip ship == aShip ]
 ]
 
 { #category : #ranking }

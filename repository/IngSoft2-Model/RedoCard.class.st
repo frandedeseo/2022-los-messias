@@ -1,35 +1,49 @@
 Class {
 	#name : #RedoCard,
-	#superclass : #Object,
+	#superclass : #Card,
+	#instVars : [
+		'cardToRedo'
+	],
 	#category : #'IngSoft2-Model'
 }
 
-{ #category : #action }
-RedoCard >> applyEffectTo: aShip on: aCardManager by: sourceShip [
+{ #category : #'instance creation' }
+RedoCard class >> thrownBy: aSourceShip [
 
-	| aCard |
-	aCard := aCardManager lastCardThrownOnTheGame.
-	aCard applyEffectTo: aShip on: aCardManager by: sourceShip.
+	^self new initializeThrownBy: aSourceShip
+]
 
-	aCardManager addToTheCardsStack: aCard
+{ #category : #accessing }
+RedoCard >> cardToRedo [ 
+
+	^ cardToRedo 
 ]
 
 { #category : #action }
-RedoCard >> applyEffectTo: aShip removing: card on: aCardManager [
+RedoCard >> createCardToRedoFrom: aCard [
 
-	| aCard |
-	aCard := aCardManager lastCardThrownOnTheGame.
-	aCard applyEffectTo: aShip removing: card on: aCardManager.
-
-	aCardManager addToTheCardsStack: aCard
+	^ aCard class thrownBy: sourceShip
 ]
 
 { #category : #action }
-RedoCard >> applyEffectToAllShipsOn: aCardManager by: sourceShip [
+RedoCard >> effectOn: aCardApplicator [
+
+	cardToRedo := self fetchCardToRedoFrom: aCardApplicator.
+	^ cardToRedo effectOn: aCardApplicator
+]
+
+{ #category : #action }
+RedoCard >> fetchCardToRedoFrom: aCardApplicator [
 
 	| aCard |
-	aCard := aCardManager lastCardThrownOnTheGame.
-	aCard applyEffectToAllShipsOn: aCardManager by: sourceShip.
-	
-	aCardManager addToTheCardsStack: aCard
+	aCard := aCardApplicator lastCardThrownOnTheGame.
+	aCard = self ifTrue: [ aCard := aCard cardToRedo ].
+
+	^ self createCardToRedoFrom: aCard
+]
+
+{ #category : #initialization }
+RedoCard >> initializeThrownBy: aSourceShip [
+
+	sourceShip := aSourceShip
 ]
