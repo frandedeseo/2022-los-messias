@@ -6,7 +6,8 @@ Class {
 		'cardHands',
 		'cardsOnTable',
 		'thrownCardsStack',
-		'zathuraGame'
+		'turnEffectApplicator',
+		'board'
 	],
 	#classInstVars : [
 		'cardHands',
@@ -16,12 +17,11 @@ Class {
 }
 
 { #category : #'instance creation' }
-CardApplicator class >> with: aCollectionOfShips and: aCollectionOfCards from: aZathuraGame [
+CardApplicator class >> with: aCollectionOfShips and: aCollectionOfCards [
 
 	^ self new
 		  initializeWith: aCollectionOfShips
 		  and: aCollectionOfCards
-		  from: aZathuraGame 
 ]
 
 { #category : #adding }
@@ -38,18 +38,25 @@ CardApplicator >> addTheNextCardToHandCardOf: aShip [
 	cardHand add: (self giveCard )
 ]
 
-{ #category : #resendingToZathura }
+{ #category : #resendingToBoard }
 CardApplicator >> applyLastEffectOn: aShip [
 
-	zathuraGame applyLastEffectOn: aShip
+	board applyLastEffectOn: aShip
 ]
 
-{ #category : #playing }
-CardApplicator >> applyPermanentCardEffectOf: aCard to: aCollectionOfShips thrownBy: sourceShip [
+{ #category : #permanentCard }
+CardApplicator >> applyPermanentCardEffectOf: aCard thrownBy: sourceShip [
 
 	self assertIsYourTurn: sourceShip.
-	  self addCardToTable:
-		  (ActiveCard with: aCard appliedTo: aCollectionOfShips)
+	self addCardToTable: (ActiveCard with: aCard appliedTo: self ships)
+]
+
+{ #category : #permanentCard }
+CardApplicator >> applyPermanentCardEffectOf: aCard to: aShip thrownBy: sourceShip [
+
+	self assertIsYourTurn: sourceShip.
+	self addCardToTable:
+		(ActiveCard with: aCard appliedTo: {aShip})
 ]
 
 { #category : #asserting }
@@ -77,6 +84,12 @@ CardApplicator >> cardHandOf: aShip [
 CardApplicator >> cardsAffecting: aShip [
 
 	^ cardsOnTable select: [ :aCard | aCard ship includes: aShip ]
+]
+
+{ #category : #resendingToTurnApplicator }
+CardApplicator >> doubleTurn [
+
+	turnEffectApplicator doubleTurn
 ]
 
 { #category : #accessing }
@@ -107,19 +120,19 @@ CardApplicator >> initializeCardHandsBy: aCollectionOfShips [
 ]
 
 { #category : #initialization }
-CardApplicator >> initializeWith: aCollectionOfShips and: aCollectionOfCards from: aZathuraGame [
+CardApplicator >> initializeWith: aTurnEffectApplicator and: aCollectionOfCards [
 
 	deck := aCollectionOfCards asOrderedCollection asSequence.
-	cardHands := self initializeCardHandsBy: aCollectionOfShips.
-	zathuraGame := aZathuraGame.
+	cardHands := self initializeCardHandsBy: aTurnEffectApplicator ships.
 	cardsOnTable := OrderedCollection new.
-	thrownCardsStack := OrderedCollection new
+	thrownCardsStack := OrderedCollection new.
+	turnEffectApplicator := aTurnEffectApplicator
 ]
 
-{ #category : #resendingToZathura }
+{ #category : #resendingToTurnApplicator }
 CardApplicator >> isTurnOf: aShip [
 
-	^ (zathuraGame isTurnOf: aShip)
+	^ (turnEffectApplicator isTurnOf: aShip)
 ]
 
 { #category : #accessing }
@@ -127,6 +140,24 @@ CardApplicator >> lastCardThrownOnTheGame [
 
 	self assertCardHasBeenThrown.
 	^ thrownCardsStack last
+]
+
+{ #category : #initialization }
+CardApplicator >> load: aBoard [
+
+	board := aBoard
+]
+
+{ #category : #resendingToTurnApplicator }
+CardApplicator >> loseTheTurn [
+	
+	turnEffectApplicator skipTurnOfActualShip
+]
+
+{ #category : #resendingToBoard }
+CardApplicator >> releaseFromJail: aShip [
+
+	board releaseFromJail: aShip
 ]
 
 { #category : #removing }
@@ -137,6 +168,12 @@ CardApplicator >> removeFromCardsOnTable: aCard [
 	cardsOnTable remove: theCard.
 ]
 
+{ #category : #resendingToTurnApplicator }
+CardApplicator >> reverseTheOrderOfTurns [
+	
+	turnEffectApplicator reverseTheOrderOfTurns
+]
+
 { #category : #accessing }
 CardApplicator >> ships [
 
@@ -144,14 +181,15 @@ CardApplicator >> ships [
 ]
 
 { #category : #throwing }
-CardApplicator >> throws: aCard to: destinationShip [
+CardApplicator >> throws: aCard [
 
-	| cardHand effectOfCard sourceShip |
+	| cardHand sourceShip |
 	sourceShip := aCard sourceShip.
 	cardHand := self cardHandOf: sourceShip.
+	cardHand assertCardIsInHand: aCard.
+	
+	aCard effectOn: self.
+	
 	cardHand remove: aCard.
-
-	effectOfCard := aCard effectOn: self.
-	effectOfCard value: destinationShip.
 	thrownCardsStack add: aCard
 ]

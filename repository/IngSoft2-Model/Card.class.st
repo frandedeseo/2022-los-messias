@@ -12,8 +12,8 @@ Card >> = aCard [
 	^(self class = aCard class)
 ]
 
-{ #category : #visiting }
-Card >> effectOn: aCardManager [
+{ #category : #action }
+Card >> effectOn: aCardApplicator [
 
 	self subclassResponsibility
 ]

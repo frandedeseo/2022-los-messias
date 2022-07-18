@@ -1,16 +1,19 @@
 Class {
 	#name : #SpeedCard,
 	#superclass : #Card,
+	#instVars : [
+		'destinationShip'
+	],
 	#category : #'IngSoft2-Model'
 }
 
 { #category : #'instance creation' }
-SpeedCard class >> thrownBy: aSourceShip [ 
-	
-	^self new initializeThrownBy: aSourceShip
+SpeedCard class >> thrownBy: aSourceShip to: destinationShip [
+
+	^ self new initializeThrownBy: aSourceShip to: destinationShip
 ]
 
-{ #category : #action }
+{ #category : #accessing }
 SpeedCard >> changeOfRoll [
 	^1
 ]
@@ -18,15 +21,15 @@ SpeedCard >> changeOfRoll [
 { #category : #action }
 SpeedCard >> effectOn: aCardApplicator [
 
-	^ [ :aCollectionOfShips | 
-	  aCardApplicator
-		  applyPermanentCardEffectOf: self
-		  to: aCollectionOfShips
-		  thrownBy: sourceShip ]
+	aCardApplicator
+		applyPermanentCardEffectOf: self
+		to: destinationShip
+		thrownBy: sourceShip
 ]
 
 { #category : #initialization }
-SpeedCard >> initializeThrownBy: aSourceShip [
-	
-	sourceShip := aSourceShip
+SpeedCard >> initializeThrownBy: aSourceShip to: aDestinationShip [
+
+	sourceShip := aSourceShip.
+	destinationShip := aDestinationShip
 ]

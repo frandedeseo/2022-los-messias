@@ -38,27 +38,15 @@ Sequence class >> with: aCollection [
 	^ self new initializeWith: aCollection asOrderedCollection 
 ]
 
-{ #category : #enumerating }
+{ #category : #'accessing - attributes' }
 Sequence >> asArray [
 
 	^ collection asArray
 ]
 
-{ #category : #enumerating }
-Sequence >> detect: aBlock [
-
-	^ collection detect: aBlock
-]
-
 { #category : #'accessing - attributes' }
 Sequence >> first [
 	^ collection first 
-]
-
-{ #category : #enumerating }
-Sequence >> includes: aBlock [
-
-	^ collection includes: aBlock
 ]
 
 { #category : #initialization }
@@ -67,7 +55,13 @@ Sequence >> initializeWith: aCollection [
 	collection := aCollection 
 ]
 
-{ #category : #'change set' }
+{ #category : #'accessing - attributes' }
+Sequence >> maxValue: block [
+
+	^ collection maxValue: block
+]
+
+{ #category : #action }
 Sequence >> next [
 
 	| aValue |
@@ -76,8 +70,17 @@ Sequence >> next [
 	^ aValue
 ]
 
-{ #category : #enumerating }
-Sequence >> select: aBlock [
+{ #category : #reversed }
+Sequence >> reversed [
+	
+	collection := collection reversed 
+]
 
-	^ collection select: aBlock
+{ #category : #action }
+Sequence >> undoNext [
+
+	| aValue |
+	aValue := collection removeLast.
+	collection addFirst: aValue.
+	^ aValue
 ]

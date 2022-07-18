@@ -31,7 +31,8 @@ Class {
 		'positionOfShips',
 		'boardDefinition',
 		'lastEffect',
-		'cardApplicator'
+		'cardApplicator',
+		'jail'
 	],
 	#classInstVars : [
 		'ships'
@@ -55,16 +56,21 @@ Board >> addIntoGame: aCollectionOfShips [
 		                          (ShipPosition for: aShip at: 0 and: 0) ].
 ]
 
+{ #category : #adding }
+Board >> addToJail: aShip [
+
+	jail add: aShip
+]
+
 { #category : #private }
 Board >> applyEffectOnLockerOrCorrectThePositionIfCrossFinishLineTo: aShip [
 
 	| thisLocker |
-	thisLocker := boardDefinition lockerAt:
-		              (self numberOfLockerOf: aShip) + 1.
+	thisLocker := boardDefinition lockerAt: (self numberOfLockerOf: aShip) + 1.
 	lastEffect := thisLocker.
-	(self hasCrossFinishLine: aShip) ifFalse: [ 
-		thisLocker applyFor: aShip on: self] ifTrue: [ self correctPositionIfCrossFinishLineTo: aShip ]
-	
+	(self hasCrossFinishLine: aShip)
+		ifFalse: [ thisLocker applyFor: aShip on: self ]
+		ifTrue: [ self correctPositionIfCrossFinishLineTo: aShip ]
 ]
 
 { #category : #moving }
@@ -74,10 +80,28 @@ Board >> applyLastEffectOn: aShip [
 ]
 
 { #category : #moving }
-Board >> changePositionOf: aShip by: aNumberOfLockers [
+Board >> changePositionOf: aShip with: diceCup [
 
-	self move: aShip by: aNumberOfLockers.
-	self applyEffectOnLockerOrCorrectThePositionIfCrossFinishLineTo: aShip
+	| aNumberOfLockers |
+	aNumberOfLockers := diceCup roll
+	                    + (cardApplicator findChangeOfRoll: aShip).
+	self
+		checkIf: aShip
+		isOnJailAndCanBeReleasedWith: aNumberOfLockers
+		of: diceCup maxNumberOfRoll.
+	
+	(jail includes: aShip) ifFalse: [ 
+		self move: aShip by: aNumberOfLockers.
+		self applyEffectOnLockerOrCorrectThePositionIfCrossFinishLineTo:
+			aShip ]
+]
+
+{ #category : #private }
+Board >> checkIf: aShip isOnJailAndCanBeReleasedWith: aNumberOfLockers of: maxNumberOfLockers [
+
+	
+	((jail includes: aShip) and: (aNumberOfLockers = maxNumberOfLockers)) ifTrue: [ 
+		self releaseFromJail: aShip ]
 ]
 
 { #category : #private }
@@ -109,7 +133,8 @@ Board >> initializeWith: aBoardDefinition withAGroupOf: aCollectionOfShips withC
 	boardDefinition := aBoardDefinition.
 	self addIntoGame: aCollectionOfShips.
 	lastEffect := LockerNoEffect new.
-	cardApplicator := aCardApplicator
+	cardApplicator := aCardApplicator.
+	jail := OrderedCollection new.
 ]
 
 { #category : #private }
@@ -191,6 +216,14 @@ Board >> positionOf: aShip [
 Board >> rankingOf: aShip [
 
 	^ self shipsSortedByPosition indexOf: aShip
+]
+
+{ #category : #removing }
+Board >> releaseFromJail: aShip [
+
+	jail remove: aShip ifAbsent: [ 
+		Error signal:
+			'The ship is not in a Jail Locker' ]
 ]
 
 { #category : #ranking }
